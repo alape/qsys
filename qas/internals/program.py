@@ -65,7 +65,7 @@ class Program:
         """Resolves symbol name into offset: that is, calculates absolute offset of given symbol across all sections
         (i.e. relative to the program start)."""
         for section in self.section_order:
-            offset = self.section_offsets[section]
+            offset = self.get_absolute_section_offset(section)
             for symbol in self.sections[section]:
                 if symbol.name == symbol_name:
                     return offset
@@ -73,6 +73,24 @@ class Program:
                     offset += symbol.length()
 
         raise KeyError(f"Symbol with name '{symbol_name}' is not present in any sections.")
+
+    def get_absolute_section_offset(self, section_name: str) -> int:
+        """Calculates absolute offset of given section relative to the program start."""
+        offset = 0
+        prev_length = 0
+
+        for section in self.section_order:
+            if self.section_offsets[section] != 0:
+                offset = self.section_offsets[section]
+            else:
+                offset += prev_length
+
+            prev_length = sum([symbol.length() for symbol in self.sections[section]])
+
+            if section == section_name:
+                return offset
+
+        raise ValueError(f"Section '{section_name}' not found in code")
 
     def resolve_references(self) -> None:
         """Recursively resolves references between symbols in program sections: replaces instructions'
@@ -117,9 +135,9 @@ class Program:
         compilation units w/ `load_object_file()`."""
         return pickle.dumps(self)
 
-    def render_verilog_header(self) -> str:
+    def render_verilog_header(self, entity_name: str = "memory") -> str:
         """Renders `Program` instance into a Verilog header that consists of an `initial` block that assigns values
-        to the array named `memory`, 1 word (32 bits) per array element."""
+        to the array accessed by `entity_name`, 1 word (32 bits) per array element."""
         v_text = "`ifndef MEMORY_VH_\n`define MEMORY_VH_\n\ninitial begin\n"
 
         # render bytecode and split it into chunks of 4 bytes (1 word)
@@ -128,7 +146,7 @@ class Program:
 
         # render code words into assignment statements, staring with index 0
         for i, word in enumerate(words):
-            v_text += f"    memory[{i}] = 32'h{word.hex().upper()};\n"
+            v_text += f"    {entity_name}[{i}] = 32'h{word.hex().upper()};\n"
 
         # finalize header file
         v_text += "end\n\n`endif\n"

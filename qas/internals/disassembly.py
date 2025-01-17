@@ -15,17 +15,17 @@ class Disassembler:
         for section_name, section_offset, section_length in self._prg.get_sections():
             # section offset not specified, calculate the actual offset
             if section_offset == 0:
-                s
+                section_offset = self._prg.get_absolute_section_offset(section_name)
 
-            output += (f"{section_name}\t@{hex(section_offset)}..{hex(section_offset + section_length)} "
+            output += (f"{section_name.ljust(20)}{hex(section_offset)}..{hex(section_offset + section_length)} "
                        f"({hex(section_length)})\n")
 
-            output += "NAME\tOFFSET\tLENGTH\n"
+            output += "NAME".ljust(20) + "OFFSET".ljust(12) + "LENGTH".ljust(12) + "\n"
 
             for symbol in self._prg.sections[section_name]:
                 offset = self._prg.get_absolute_symbol_offset(symbol.name)
 
-                output += f"{symbol.name}\t{hex(offset)}\t{hex(symbol.length())}\n"
+                output += symbol.name.ljust(20) + hex(offset).ljust(12) + hex(symbol.length()).ljust(12) + "\n"
 
             output += "\n"
 

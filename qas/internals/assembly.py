@@ -14,7 +14,7 @@ class ParsingError(Exception):
 
 class ParsingTools:
     """A collection of helper functions for assembly parsing."""
-    _re_is_immediate_int = re.compile(r"(0b|'b|0x|'h|)(\d+)")
+    _re_is_immediate_int = re.compile(r"^(0b|'b|0x|'h|)([\da-fA-F]+)$")
     _re_is_symbol_name = re.compile(r"^[a-zA-Z0-9\-_]+$")
 
     @staticmethod

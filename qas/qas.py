@@ -22,6 +22,9 @@ if __name__ == "__main__":
                         help="Output Verilog header file. If this argument is supplied, qas will additionally "
                              "produce bytecode rendered as Verilog header file.")
 
+    parser.add_argument("--verilog_entity", type=str, metavar="ENTITY_NAME", default="memory",
+                        help="Specifies name of array that is used in '--verilog' parameter output (default 'memory')")
+
     parser.add_argument("-o", "--output", type=str, metavar="OUTPUT_FILE", default="program.bin",
                         help="Specifies the output binary file.")
 
@@ -63,4 +66,4 @@ if __name__ == "__main__":
     # output Verilog header file
     if args.verilog:
         with open(args.verilog, "w") as f:
-            f.write(program.render_verilog_header())
+            f.write(program.render_verilog_header(args.verilog_entity))
