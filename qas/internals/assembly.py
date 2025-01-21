@@ -3,7 +3,7 @@ import shlex
 
 from struct import pack
 
-from internals.instructions import SymbolReference, OffsetArgument, Register, Instruction, Opcode, AddressArgument, DB
+from internals.instructions import SymbolReference, Register, Instruction, Opcode, AddressArgument, DB
 from internals.program import Program, Symbol
 
 
@@ -14,7 +14,7 @@ class ParsingError(Exception):
 
 class ParsingTools:
     """A collection of helper functions for assembly parsing."""
-    _re_is_immediate_int = re.compile(r"^(0b|'b|0x|'h|)([\da-fA-F]+)$")
+    _re_is_immediate_int = re.compile(r"^(0b|'b|0x|'h|)(\d+|(?<=0x|'h)[\da-fA-F]+)$")
     _re_is_symbol_name = re.compile(r"^[a-zA-Z0-9\-_]+$")
 
     @staticmethod
@@ -44,16 +44,11 @@ class ParsingTools:
                 return int(digits)
 
     @staticmethod
-    def parse_instruction_argument(argument: str) -> (SymbolReference |
-                                                      OffsetArgument | AddressArgument | Register | int):
+    def parse_instruction_argument(argument: str) -> (SymbolReference | AddressArgument | Register | int):
         """Parses a single instruction argument into corresponding wrapper type."""
         if argument.upper() in Register.indices():
             # argument is a register index, parse into `Register` enum value
             return Register.from_string(argument)
-
-        if len(argument) > 0 and argument[0] in ("+", "-"):
-            # argument is a PC offset (E-flavoured instruction), wrap value into an `OffsetArgument`
-            return OffsetArgument(int(argument))
 
         if len(argument) > 0 and argument[0] == "@":
             # argument is an absolute address, wrap value into an `AddressArgument`

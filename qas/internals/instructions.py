@@ -35,7 +35,7 @@ class Flavour(IndexableEnum):
     R = 1
     I = 2
     S = 3
-    T = 4
+    Q = 4
     F = 5
     E = 6
     A = 7
@@ -47,6 +47,7 @@ class Register(IndexableEnum):
     ONES = 0x1
     PC = 0x2
     SC = 0x3
+    SR = 0x4
     R0 = 0x8
     R1 = 0x9
     R2 = 0xA
@@ -70,12 +71,6 @@ class SymbolReference:
     """Reference promise: class that wraps a symbol, referenced by its name: this is to be replaced by symbol's
     absolute offset during compilation."""
     symbol_name: str
-
-
-@dataclass
-class OffsetArgument:
-    """Address offset as argument: class that wraps a numeric PC offset."""
-    offset: int
 
 
 @dataclass
@@ -130,7 +125,7 @@ class Instruction(MemoryEntity):
     """Dataclass that represents a single QCPU instruction."""
     opcode: Opcode
     flavour: Flavour = Flavour.N
-    arguments: list[Register | SymbolReference | OffsetArgument | AddressArgument | int] = field(default_factory=list)
+    arguments: list[Register | SymbolReference | AddressArgument | int] = field(default_factory=list)
 
     def __str__(self) -> str:
         return self.opcode.name + self.flavour.name
@@ -158,18 +153,17 @@ class Instruction(MemoryEntity):
             # S flavour: dest [Register], src [int: 20-bit immediate]
             self.flavour = Flavour.S
         elif signature == [Register, Register]:
-            # could either be a T or F flavour: dest [Register], src/ref [Register], check opcode
-            if self.opcode == Opcode.NOT:
-                # only NOT instructions are T-flavoured
-                self.flavour = Flavour.T
-            else:
-                self.flavour = Flavour.F
-        elif signature == [Register, OffsetArgument]:
-            # E flavour: dest [Register], offset [OffsetArgument]
+            # F flavour: dest [Register], src [Register]
+            self.flavour = Flavour.F
+        elif signature == [Register]:
+            # E flavour: dest [Register]
             self.flavour = Flavour.E
         elif signature == [Register, AddressArgument] or signature == [Register, SymbolReference]:
-            # A flavour: dest [Register], ref [AddressArgument / ?SymbolReference]
+            # A flavour: dest [Register], addr [AddressArgument / ?SymbolReference]
             self.flavour = Flavour.A
+        elif signature == [AddressArgument] or signature == [SymbolReference]:
+            # Q flavour: dest [AddressArgument]
+            self.flavour = Flavour.Q
         else:
             raise AttributeError(f"Invalid argument signature for instruction {self.opcode.name}: "
                                  f"{[a.__class__.__name__ for a in self.arguments]}")
@@ -226,22 +220,20 @@ class Instruction(MemoryEntity):
                 return (self.get_instruction() +
                         bytes([self.arguments[0].hi() | (src & 0xF0000) >> 16, (src & 0xFF00) >> 8, src & 0xFF]))
 
-            case Flavour.T | Flavour.F:
-                # T/F flavour: dest [Register], src/ref [Register]
+            case Flavour.F:
+                # F flavour: dest [Register], src [Register]
                 _check_arglen(2)
                 _check_argtype([Register, Register])
 
                 return self.get_instruction() + bytes([self.arguments[0].hi() | self.arguments[1].lo(), 0, 0])
 
             case Flavour.E:
-                # E flavour: dest [Register], offset [OffsetArgument]
-                _check_arglen(2)
-                _check_argtype([Register, OffsetArgument])
-
-                src = self.arguments[1].offset
+                # E flavour: dest [Register]
+                _check_arglen(1)
+                _check_argtype([Register])
 
                 return (self.get_instruction() +
-                        bytes([self.arguments[0].hi() | (src & 0xF0000) >> 16, (src & 0xFF00) >> 8, src & 0xFF]))
+                        bytes([self.arguments[0].hi(), 0, 0]))
 
             case Flavour.A:
                 # A flavour: dest [Register], ref [AddressArgument / ?SymbolReference]
@@ -256,3 +248,17 @@ class Instruction(MemoryEntity):
 
                 return (self.get_instruction() +
                         bytes([self.arguments[0].hi() | (src & 0xF0000) >> 16, (src & 0xFF00) >> 8, src & 0xFF]))
+
+            case Flavour.Q:
+                # Q flavour: ref [AddressArgument / ?SymbolReference]
+                _check_arglen(1)
+
+                if isinstance(self.arguments[0], SymbolReference):
+                    raise AttributeError(f"Instruction contains unresolved reference: {self.arguments[1].symbol_name}")
+
+                _check_argtype([AddressArgument])
+
+                src = self.arguments[0].address
+
+                return (self.get_instruction() +
+                        bytes([(src & 0xFF0000) >> 16, (src & 0xFF00) >> 8, src & 0xFF]))

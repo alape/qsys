@@ -2,7 +2,7 @@
     _start:     ld r0, 0xAAAAAAAA
                 ld r1, 0xBBBBBBBB
                 sub r2, r1, r0
-                jmp r0, cont
+                jmp cont
                 nop
                 nop
                 nop
