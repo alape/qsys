@@ -3,7 +3,7 @@ import pickle
 from dataclasses import dataclass, field
 from collections import defaultdict
 
-from internals.instructions import MemoryEntity, Instruction, SymbolReference, AddressArgument
+from internals.instructions import MemoryEntity, Instruction, SymbolReference, PointerReference, AddressArgument
 
 
 @dataclass
@@ -99,11 +99,19 @@ class Program:
             for symbol in self.sections[section]:
                 for entity in symbol.contents:
                     if isinstance(entity, Instruction):
+                        # resolve SymbolReferences into AddressArguments
                         references = [(idx, ref) for idx, ref in enumerate(entity.arguments) if
                                       isinstance(ref, SymbolReference)]
 
                         for idx, ref in references:
                             entity.arguments[idx] = AddressArgument(self.get_absolute_symbol_offset(ref.symbol_name))
+
+                        # resolve PointerReferences into immediate int values
+                        pointers = [(idx, ref) for idx, ref in enumerate(entity.arguments) if
+                                    isinstance(ref, PointerReference)]
+
+                        for idx, ref in pointers:
+                            entity.arguments[idx] = self.get_absolute_symbol_offset(ref.symbol_name)
 
     def render_code(self) -> bytes:
         """Renders intermediate representation of the program into bytes of machine code."""

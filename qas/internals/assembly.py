@@ -3,7 +3,7 @@ import shlex
 
 from struct import pack
 
-from internals.instructions import SymbolReference, Register, Instruction, Opcode, AddressArgument, DB
+from internals.instructions import SymbolReference, PointerReference, Register, Instruction, Opcode, AddressArgument, DB
 from internals.program import Program, Symbol
 
 
@@ -44,7 +44,8 @@ class ParsingTools:
                 return int(digits)
 
     @staticmethod
-    def parse_instruction_argument(argument: str) -> (SymbolReference | AddressArgument | Register | int):
+    def parse_instruction_argument(argument: str) -> (SymbolReference | PointerReference |
+                                                      AddressArgument | Register | int):
         """Parses a single instruction argument into corresponding wrapper type."""
         if argument.upper() in Register.indices():
             # argument is a register index, parse into `Register` enum value
@@ -53,6 +54,10 @@ class ParsingTools:
         if len(argument) > 0 and argument[0] == "@":
             # argument is an absolute address, wrap value into an `AddressArgument`
             return AddressArgument(ParsingTools.parse_numeral(argument.lstrip("@")))
+
+        if len(argument) > 0 and argument[0] == "$":
+            # argument is an address of a symbol, wrap value into a `SymbolReference`
+            return PointerReference(argument.lstrip("$"))
 
         if ParsingTools.is_valid_numeral(argument):
             # immediate numeral argument, parse to int according to specified radix

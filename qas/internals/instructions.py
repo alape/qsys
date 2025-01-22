@@ -69,7 +69,13 @@ class Register(IndexableEnum):
 @dataclass
 class SymbolReference:
     """Reference promise: class that wraps a symbol, referenced by its name: this is to be replaced by symbol's
-    absolute offset during compilation."""
+    absolute offset wrapped in an `AddressArgument` during compilation."""
+    symbol_name: str
+
+
+@dataclass
+class PointerReference:
+    """Same as `SymbolReference`, but resolves into immediate address (i.e., int) instead of an `AddressArgument`. """
     symbol_name: str
 
 
@@ -125,7 +131,7 @@ class Instruction(MemoryEntity):
     """Dataclass that represents a single QCPU instruction."""
     opcode: Opcode
     flavour: Flavour = Flavour.N
-    arguments: list[Register | SymbolReference | AddressArgument | int] = field(default_factory=list)
+    arguments: list[Register | SymbolReference | PointerReference | AddressArgument | int] = field(default_factory=list)
 
     def __str__(self) -> str:
         return self.opcode.name + self.flavour.name
@@ -146,10 +152,10 @@ class Instruction(MemoryEntity):
         elif signature == [Register, Register, Register]:
             # R flavour: dest [Register], src1 [Register], src2 [Register]
             self.flavour = Flavour.R
-        elif signature == [Register, Register, builtins.int]:
+        elif signature == [Register, Register, builtins.int] or signature == [Register, Register, PointerReference]:
             # I flavour: dest [Register], src1 [Register], src2 [int: 16-bit immediate]
             self.flavour = Flavour.I
-        elif signature == [Register, builtins.int]:
+        elif signature == [Register, builtins.int] or signature == [Register, PointerReference]:
             # S flavour: dest [Register], src [int: 20-bit immediate]
             self.flavour = Flavour.S
         elif signature == [Register, Register]:
