@@ -3,7 +3,8 @@ import shlex
 
 from struct import pack
 
-from internals.instructions import SymbolReference, PointerReference, Register, Instruction, Opcode, AddressArgument, DB
+from internals.instructions import (SymbolReference, PointerReference, Register, Instruction,
+                                    Opcode, AddressArgument, DB, Word)
 from internals.program import Program, Symbol
 
 
@@ -69,6 +70,16 @@ class ParsingTools:
             return SymbolReference(argument)
         else:
             raise ParsingError(f"Invalid instruction argument format: '{argument}'")
+
+    @staticmethod
+    def parse_word_argument(token: str) -> int:
+        """Parses a single `word` argument into a numeric value."""
+
+        # check if whether token is a valid numeral. If not, raise an exception
+        if ParsingTools.is_valid_numeral(token):
+            return ParsingTools.parse_numeral(token)
+        else:
+            raise ParsingError(f"Invalid word argument: '{token}'")
 
     @staticmethod
     def parse_data_argument(token: str) -> bytes:
@@ -140,6 +151,7 @@ class AssemblyParser:
             tokens = ParsingTools.tokenize(line)
             instruction: Instruction | None = None
             data: DB | None = None
+            word: Word | None = None
 
             try:
                 for token in tokens:
@@ -182,19 +194,25 @@ class AssemblyParser:
                         # data element declaration
                         data = DB()
 
+                    elif token.lower() == "word":
+                        # data word declaration
+                        word = Word()
+
                     else:
                         # this might be either an instruction name, one of its arguments or a piece of data...
                         if data is not None:
                             # ...token is a `data` statement argument
                             data.data += ParsingTools.parse_data_argument(token)
+                        elif word is not None:
+                            # ...token is a `word` statement argument
+                            word.value = ParsingTools.parse_word_argument(token)
+                        elif instruction is None:
+                            # ...token is an instruction name
+                            instruction = Instruction(Opcode.from_string(token))
                         else:
-                            if instruction is None:
-                                # ...token is an instruction name
-                                instruction = Instruction(Opcode.from_string(token))
-                            else:
-                                # ...token is an instruction argument
-                                instruction.arguments.append(
-                                    ParsingTools.parse_instruction_argument(token))
+                            # ...token is an instruction argument
+                            instruction.arguments.append(
+                                ParsingTools.parse_instruction_argument(token))
 
                 # wrap up an instruction if it's been declared on this line
                 if instruction is not None:
@@ -210,6 +228,13 @@ class AssemblyParser:
                         raise ParsingError(f"Data object declared out of symbol")
 
                     curr_symbol.contents.append(data)
+
+                # wrap up a word object if it's been declared on this line
+                if word is not None:
+                    if curr_symbol is None:
+                        raise ParsingError(f"Word object declared out of symbol")
+
+                    curr_symbol.contents.append(word)
 
             except (ValueError, KeyError, AttributeError, ParsingError) as e:
                 raise ParsingError(f"At line {lineno + 1}: {str(e)}") from e

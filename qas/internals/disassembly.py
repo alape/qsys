@@ -1,4 +1,5 @@
 from internals.program import Program
+from internals.instructions import Instruction, DB
 
 
 class Disassembler:
@@ -26,6 +27,12 @@ class Disassembler:
                 offset = self._prg.get_absolute_symbol_offset(symbol.name)
 
                 output += symbol.name.ljust(20) + hex(offset).ljust(12) + hex(symbol.length()).ljust(12) + "\n"
+
+                for entity in symbol.contents:
+                    entity_name = entity.get_bytes().hex().upper() + ": " + str(entity)
+                    output += entity_name.ljust(20) + "\n"
+
+                output += "\n"
 
             output += "\n"
 
