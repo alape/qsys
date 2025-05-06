@@ -48,6 +48,8 @@ class Register(IndexableEnum):
     PC = 0x2
     SC = 0x3
     SR = 0x4
+    IR = 0x5
+    IV = 0x6
     R0 = 0x8
     R1 = 0x9
     R2 = 0xA
@@ -134,7 +136,20 @@ class Instruction(MemoryEntity):
     arguments: list[Register | SymbolReference | PointerReference | AddressArgument | int] = field(default_factory=list)
 
     def __str__(self) -> str:
-        return self.opcode.name + self.flavour.name
+        base_name = self.opcode.name + self.flavour.name
+
+        arguments_rendered = []
+        for argument in self.arguments:
+            if isinstance(argument, int):
+                arguments_rendered.append(hex(argument))
+            elif isinstance(argument, Register):
+                arguments_rendered.append(argument.name)
+            elif isinstance(argument, AddressArgument):
+                arguments_rendered.append(f"${argument.address:#x}")
+            else:
+                arguments_rendered.append(str(argument))
+
+        return base_name + " " + ", ".join(arguments_rendered)
 
     def length(self) -> int:
         return 1
