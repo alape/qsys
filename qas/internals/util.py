@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Self
+from typing import Self, TypeVar
 
 
 class IndexableEnum(Enum):
@@ -18,3 +18,11 @@ class IndexableEnum(Enum):
     def indices(cls) -> list[str]:
         """Returns a list of all string indices of itself."""
         return [v.name for v in cls]
+
+
+T = TypeVar("T")
+
+
+def slice_by_chunks(e: T, chunk_len: int) -> list[T]:
+    """Splits `e` into multiple chunks, each `chunk_len` in length or less (final chunk)."""
+    return [e[i:i + chunk_len] for i in range(0, len(e), chunk_len)]

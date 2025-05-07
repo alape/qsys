@@ -1,5 +1,6 @@
 from internals.program import Program
 from internals.instructions import Word, DB, Instruction
+from internals.util import slice_by_chunks
 
 
 class Disassembler:
@@ -37,11 +38,20 @@ class Disassembler:
                     else:
                         entity_name = str(entity)
 
-                    entity_contents = entity.get_bytes().hex()
-                    entity_contents_sliced = \
-                        " ".join([entity_contents[i:i + 2] for i in range(0, len(entity_contents), 2)])
-                    output += f"{offset + intra_symbol_offset:0{10}X}: {entity_contents_sliced}: {entity_name}\n"
-                    intra_symbol_offset += entity.length()
+                    if entity.length() > 4:  # 4 words is 16 bytes
+                        # slice bytes into chunks of 16 (display 16 bytes per line)
+                        hex_chunks = slice_by_chunks(entity.get_bytes(), 16)
+                        for i, chunk in enumerate(hex_chunks):
+                            if i == 0:
+                                output += f"{offset + intra_symbol_offset:0{10}X}: "
+                                output += " ".join(slice_by_chunks(chunk.hex(), 2)) + f": {entity_name}\n"
+                            else:
+                                output += " " * 12
+                                output += " ".join(slice_by_chunks(chunk.hex(), 2)) + "\n"
+                    else:
+                        entity_contents_sliced = " ".join(slice_by_chunks(entity.get_bytes().hex(), 2))
+                        output += f"{offset + intra_symbol_offset:0{10}X}: {entity_contents_sliced}: {entity_name}\n"
+                        intra_symbol_offset += entity.length()
 
                 output += "\n"
 

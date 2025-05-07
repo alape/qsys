@@ -149,7 +149,7 @@ class Instruction(MemoryEntity):
             else:
                 arguments_rendered.append(str(argument))
 
-        return base_name + " " + ", ".join(arguments_rendered)
+        return base_name.ljust(4) + " " + ", ".join(arguments_rendered)
 
     def length(self) -> int:
         return 1
