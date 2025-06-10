@@ -3,6 +3,7 @@ import builtins
 from struct import pack
 from dataclasses import dataclass, field
 from math import ceil
+from typing import Self
 
 from internals.util import IndexableEnum
 
@@ -145,7 +146,7 @@ class Instruction(MemoryEntity):
             elif isinstance(argument, Register):
                 arguments_rendered.append(argument.name)
             elif isinstance(argument, AddressArgument):
-                arguments_rendered.append(f"${argument.address:#x}")
+                arguments_rendered.append(f"@{argument.address:#x}")
             else:
                 arguments_rendered.append(str(argument))
 
@@ -283,3 +284,50 @@ class Instruction(MemoryEntity):
 
                 return (self.get_instruction() +
                         bytes([(src & 0xFF0000) >> 16, (src & 0xFF00) >> 8, src & 0xFF]))
+
+    @classmethod
+    def from_bytes(cls, val: bytes) -> Self:
+        """Parses bytecode into an `Instruction` instance. Assumes `val` is a `bytes` object of length 4 (1 word)."""
+        assert len(val) == 4
+
+        # parse Opcode and Flavour from first and second nibbles of the first byte respectively
+        opcode = Opcode.from_value(val[0] & 0x1F)
+        flavour = Flavour.from_value(val[0] >> 5)
+
+        # parse arguments according to the retrieved Flavour
+        arguments = []
+        match flavour:
+            case Flavour.R:
+                # R flavour: dest [Register], src1 [Register], src2 [Register]: all arguments must be Register indices
+                arguments = [Register.from_value(val[1] >> 4), Register.from_value(val[1] & 0xF),
+                             Register.from_value(val[2] >> 4)]
+
+            case Flavour.I:
+                # I flavour: dest [Register], src1 [Register], src2 [int: 16-bit immediate]
+                arguments = [Register.from_value(val[1] >> 4), Register.from_value(val[1] & 0xF),
+                             (val[2] << 8) | val[3]]
+
+            case Flavour.S:
+                # S flavour: dest [Register], src [int: 20-bit immediate]
+                arguments = [Register.from_value(val[1] >> 4),
+                             ((val[1] & 0xF) << 16) | (val[2] << 8) | val[3]]
+
+            case Flavour.F:
+                # F flavour: dest [Register], src [Register]
+                arguments = [Register.from_value(val[1] >> 4), Register.from_value(val[1] & 0xF)]
+
+            case Flavour.E:
+                # E flavour: dest [Register]
+                arguments = [Register.from_value(val[1] >> 4)]
+
+            case Flavour.A:
+                # A flavour: dest [Register], ref [AddressArgument]
+                arguments = [Register.from_value(val[1] >> 4),
+                             AddressArgument(((val[1] & 0xF) << 16) | (val[2] << 8) | val[3])]
+
+            case Flavour.Q:
+                # Q flavour: ref [AddressArgument]
+                arguments = [AddressArgument((val[1] << 16) | val[2] << 8 | val[3])]
+
+        # pack parsed data into an Instruction instance and send it away
+        return Instruction(opcode, flavour, arguments)

@@ -1,0 +1,19 @@
+{
+  "addr_space": [
+    {
+      "type": "Memory",
+      "cfg": {
+        "addr_offset": 0,
+        "mem_size": 511
+      }
+    },
+    {
+      "type": "SIMIO",
+      "cfg": {
+        "addr_offset": 512
+      }
+    }
+  ],
+  "load_at": 0,
+  "start_at": 0
+}

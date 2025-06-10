@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Self, TypeVar
+from typing import Self, TypeVar, Any
 
 
 class IndexableEnum(Enum):
@@ -13,6 +13,15 @@ class IndexableEnum(Enum):
                 return val
 
         raise KeyError(f"Value {key} is not present in {cls.__name__} enum")
+
+    @classmethod
+    def from_value(cls, value: Any) -> Self:
+        """Returns value of itself, which contained value matches the provided object."""
+        for val in cls:
+            if val.value == value:
+                return val
+
+        raise KeyError(f"Value {value} is not present in {cls.__name__} enum")
 
     @classmethod
     def indices(cls) -> list[str]:
