@@ -50,10 +50,8 @@ class IP:
         """Process various other tasks tied to the system clock."""
         pass
 
-    def write_reg(self, absolute_address: int, value: int) -> None:
+    def write_reg(self, relative_address: int, value: int) -> None:
         """Writes IP block's address space using absolute addresses."""
-        relative_address = absolute_address - self.addr_offset
-
         if (relative_address in self.reg_descr and
                 (self.reg_descr[relative_address][1] not in (IPRegisterAccessMode.RW, IPRegisterAccessMode.W))):
             raise IPException(f"Register {self.reg_descr[relative_address][0]} cannot be written "
@@ -64,10 +62,8 @@ class IP:
         except IndexError:
             raise IPException(f"Register w/ address {relative_address:#x} doesn't exist in this IP block")
 
-    def read_reg(self, absolute_address: int) -> int:
+    def read_reg(self, relative_address: int) -> int:
         """Reads IP block's address space using absolute addresses."""
-        relative_address = absolute_address - self.addr_offset
-
         if (relative_address in self.reg_descr and
                 (self.reg_descr[relative_address][1] not in (IPRegisterAccessMode.RW, IPRegisterAccessMode.R))):
             raise IPException(f"Register {self.reg_descr[relative_address][0]} cannot be read "

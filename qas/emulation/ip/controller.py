@@ -50,11 +50,12 @@ class IPController:
     def write_reg(self, absolute_address: int, value: int) -> None:
         """Selects IP block by its absolute address and writes its memory (via its own write_reg() call)."""
         ip = self.get_ip_by_absolute_address(absolute_address)
-        ip.write_reg(absolute_address, value)
+        ip.write_reg(absolute_address - ip.addr_offset, value)
 
     def read_reg(self, absolute_address: int) -> int:
         """Selects IP block by its absolute address and reads its memory (via its own read_reg() call)."""
-        return self.get_ip_by_absolute_address(absolute_address).read_reg(absolute_address)
+        ip = self.get_ip_by_absolute_address(absolute_address)
+        return ip.read_reg(absolute_address - ip.addr_offset)
 
     @classmethod
     def from_config(cls, cfg: list[dict]) -> Self:
