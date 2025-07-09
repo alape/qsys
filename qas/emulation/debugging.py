@@ -1,6 +1,6 @@
 from sys import exit
 
-from internals.instructions import Register, Instruction
+from code.instructions import Register, Instruction
 from emulation.machine import QCPUMachine
 
 

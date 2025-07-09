@@ -1,6 +1,6 @@
 from enum import Enum, auto
 
-from internals.instructions import Word
+from code.instructions import Word
 
 
 class IPException(Exception):

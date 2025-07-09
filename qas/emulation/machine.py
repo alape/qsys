@@ -1,6 +1,6 @@
 from typing import Self
 
-from internals.instructions import Register, Opcode, Instruction, Flavour
+from code.instructions import Register, Opcode, Instruction, Flavour
 from emulation.ip.controller import IPController
 from emulation.ip.memory import MemoryBlock
 

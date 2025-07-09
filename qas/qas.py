@@ -2,8 +2,8 @@ import logging
 
 from argparse import ArgumentParser
 
-from internals.assembly import AssemblyParser
-from internals.disassembly import Disassembler
+from code.assembly import AssemblyParser
+from code.disassembly import Disassembler
 
 
 if __name__ == "__main__":

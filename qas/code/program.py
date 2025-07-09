@@ -3,7 +3,7 @@ import pickle
 from dataclasses import dataclass, field
 from collections import defaultdict
 
-from internals.instructions import MemoryEntity, Instruction, SymbolReference, PointerReference, AddressArgument
+from code.instructions import MemoryEntity, Instruction, SymbolReference, PointerReference, AddressArgument
 
 
 @dataclass

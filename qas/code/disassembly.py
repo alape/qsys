@@ -1,6 +1,6 @@
-from internals.program import Program
-from internals.instructions import Word, DB, Instruction
-from internals.util import slice_by_chunks
+from code.program import Program
+from code.instructions import Word, DB, Instruction
+from code.util import slice_by_chunks
 
 
 class Disassembler:

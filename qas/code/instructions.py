@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from math import ceil
 from typing import Self
 
-from internals.util import IndexableEnum
+from code.util import IndexableEnum
 
 
 class Opcode(IndexableEnum):

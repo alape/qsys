@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 
 from emulation.machine import QCPUMachine
 from emulation.debugging import QCPUDebugger
-from internals.versioning import get_version
+from code.versioning import get_version
 
 if __name__ == "__main__":
     # parse command line arguments
