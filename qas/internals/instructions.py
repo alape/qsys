@@ -28,6 +28,8 @@ class Opcode(IndexableEnum):
     JMP = 0xF
     JAL = 0x10
     RET = 0x11
+    PSH = 0x12
+    POP = 0x13
 
 
 class Flavour(IndexableEnum):
@@ -183,8 +185,8 @@ class Instruction(MemoryEntity):
         elif signature == [Register, AddressArgument] or signature == [Register, SymbolReference]:
             # A flavour: dest [Register], addr [AddressArgument / ?SymbolReference]
             self.flavour = Flavour.A
-        elif signature == [AddressArgument] or signature == [SymbolReference]:
-            # Q flavour: dest [AddressArgument]
+        elif signature == [AddressArgument] or signature == [SymbolReference] or signature == [builtins.int]:
+            # Q flavour: dest [AddressArgument / int]
             self.flavour = Flavour.Q
         else:
             raise AttributeError(f"Invalid argument signature for instruction {self.opcode.name}: "
