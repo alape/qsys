@@ -1,6 +1,6 @@
 from enum import Enum, auto
 
-from code.instructions import Word
+from assembler.instructions import Word
 
 
 class IPException(Exception):
@@ -21,14 +21,18 @@ class IP:
     addr_space_size = 0xff
     easymmap_id = 0xDEADBEEF
     reg_descr = {}
+    _alloc_addrspace = True
 
-    def __init__(self, addr_offset: int = 0):
-        # create an empty address space
-        assert self.addr_space_size > 0
-        self.addrspace = [Word() for _ in range(self.addr_space_size)]
+    def __init__(self, addr_offset: int = 0, **kwargs):
+        # create an empty address space, if this option is not overridden by IP heirs
+        if self._alloc_addrspace:
+            assert self.addr_space_size > 0
+            self.addrspace = [Word() for _ in range(self.addr_space_size)]
 
-        # set first word of addrspace to be an EasyMMap ID
-        self.addrspace[0].value = self.easymmap_id
+            # set first word of addrspace to be an EasyMMap ID
+            self.addrspace[0].value = self.easymmap_id
+        else:
+            self.addrspace = []
 
         self.addr_offset = addr_offset
 

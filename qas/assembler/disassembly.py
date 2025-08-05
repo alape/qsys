@@ -1,6 +1,6 @@
-from code.program import Program
-from code.instructions import Word, DB, Instruction
-from code.util import slice_by_chunks
+from assembler.program import Program
+from assembler.instructions import Word, DB, Instruction
+from assembler.util import slice_by_chunks
 
 
 class Disassembler:

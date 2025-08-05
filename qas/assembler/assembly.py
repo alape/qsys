@@ -3,9 +3,9 @@ import shlex
 
 from struct import pack
 
-from code.instructions import (SymbolReference, PointerReference, Register, Instruction,
-                               Opcode, AddressArgument, DB, Word)
-from code.program import Program, Symbol
+from assembler.instructions import (SymbolReference, PointerReference, Register, Instruction,
+                                    Opcode, AddressArgument, DB, Word)
+from assembler.program import Program, Symbol
 
 
 class ParsingError(Exception):

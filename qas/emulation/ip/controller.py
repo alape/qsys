@@ -3,11 +3,13 @@ from typing import Iterable, Self
 from emulation.ip.common import IP
 from emulation.ip.memory import *
 from emulation.ip.simio import *
+from emulation.ip.vgi import *
 
 # a rather lazy way to map IP block classes to their mentions in config objects
 KnownIPs = {
     "Memory": MemoryBlock,
-    "SIMIO": SimIO
+    "SIMIO": SimIO,
+    "VGI": VGI
 }
 
 

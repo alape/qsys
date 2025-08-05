@@ -1,5 +1,5 @@
 from emulation.ip.common import IP, IPRegisterAccessMode
-from code.util import slice_by_chunks
+from assembler.util import slice_by_chunks
 
 
 class MemoryBlock(IP):
