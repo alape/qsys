@@ -1,7 +1,6 @@
-.text
-    ; Calling convention: R0..R6 are reserved for arguments and may be overwritten by routines;
-    ;                     R7 is reserved for return value
+; Collection of SIMIO-related routines (character IO, trap exit).
 
+.text_llr
     simio_puts:
         ; Prints a string via SIMIO. R0 is string pointer, R1 is string length (in words).
 
@@ -45,17 +44,13 @@
         _getcloop:  ld r1, @0x202            ; wait until SIMI (0x202) is not zero
                     beq r0, r1, 0
 
-        add r7, r1, 0                       ; move char to R7
+        add r7, r1, 0                        ; move char to R7
 
-        ret                                 ; exit simio_getc()
+        ret                                  ; exit simio_getc()
 
     simio_trap_exit:
         ; Terminates simulation via TRAP. Takes no arguments, never returns.
         ld r0, 1
         st r0, @0x203                         ; store 1 to TRAP
 
-        ret                                 ; o.0 return in case we're not in simulation after all
-    
-    llr_irq_handler:
-        ; LLR's default interrupt handler (under construction)
-        ret
+        ret                                   ; o.0 return in case we're not in simulation after all
