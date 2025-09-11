@@ -1,7 +1,9 @@
 import logging
 
+from sys import exit
 from argparse import ArgumentParser
 
+from assembler.preprocessing import Preprocessor
 from assembler.assembly import AssemblyParser
 from assembler.disassembly import Disassembler
 
@@ -28,6 +30,10 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--output", type=str, metavar="OUTPUT_FILE", default="program.bin",
                         help="Specifies the output binary file.")
 
+    parser.add_argument("-p", "--preprocess", type=str, metavar="OUTPUT_FILE", default="",
+                        help="Preprocess input files and output result to a specified file. If this option is used, no "
+                             "further actions will be performed.")
+
     parser.add_argument("files", nargs="+", type=str, metavar="SOURCE_FILE",
                         help="Source files to be assembled.")
 
@@ -35,10 +41,20 @@ if __name__ == "__main__":
 
     asm = AssemblyParser()
 
-    # process input files
+    # preprocess and assemble input files
     for file in args.files:
         with open(file, "r") as f:
-            asm.process_assembly(f.read())
+            preprocessed_code = Preprocessor.preprocess(f.read(), ["."], {})
+
+        if args.preprocess:
+            with open(args.preprocess, "a") as f:
+                f.write(preprocessed_code + "\n")
+        else:
+            asm.process_assembly(preprocessed_code)
+
+    # don't perform any further actions if preprocessor option is used
+    if args.preprocessor:
+        exit(0)
 
     # link the program
     program = asm.get_program()

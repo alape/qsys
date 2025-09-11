@@ -1,6 +1,7 @@
 .DS_Store
 .idea
 .venv
+*.qo
 __pycache__
 qas/examples/*
 !qas/examples/*.s
