@@ -48,10 +48,16 @@ if __name__ == "__main__":
 
     asm = AssemblyParser()
 
+    # reassemble (geddit?) external macrodefinitions into format that is palatable for qas's preprocessor
+    external_macros = {}
+    for macro in args.define:
+        macro_name, macro_contents = [t.strip() for t in macro.split("=")]
+        external_macros[macro_name] = (tuple(), macro_contents)
+
     # preprocess and assemble input files
     for file in args.files:
         with open(file, "r") as f:
-            preprocessed_code = Preprocessor.preprocess(f.read(), ["."] + args.include, {})
+            preprocessed_code = Preprocessor.preprocess(f.read(), ["."] + args.include, external_macros)
 
         if args.preprocess:
             with open(args.preprocess, "a") as f:
