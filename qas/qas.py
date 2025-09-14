@@ -34,6 +34,13 @@ if __name__ == "__main__":
                         help="Preprocess input files and output result to a specified file. If this option is used, no "
                              "further actions will be performed.")
 
+    parser.add_argument("-I", "--include", type=str, action="extend", nargs="+", metavar="PATH",
+                        help="Adds a path to the list of paths assembler is looking into while processing includes.")
+
+    parser.add_argument("-D", "--define", type=str, action="extend", nargs="+", metavar="MACRO",
+                        help="Defines a global macro. Can be overridden by `#define` statements in code. "
+                             "Format is MACRO_NAME=MACRO_CONTENTS, e.g. FOO=42.")
+
     parser.add_argument("files", nargs="+", type=str, metavar="SOURCE_FILE",
                         help="Source files to be assembled.")
 
@@ -44,7 +51,7 @@ if __name__ == "__main__":
     # preprocess and assemble input files
     for file in args.files:
         with open(file, "r") as f:
-            preprocessed_code = Preprocessor.preprocess(f.read(), ["."], {})
+            preprocessed_code = Preprocessor.preprocess(f.read(), ["."] + args.include, {})
 
         if args.preprocess:
             with open(args.preprocess, "a") as f:
@@ -53,7 +60,7 @@ if __name__ == "__main__":
             asm.process_assembly(preprocessed_code)
 
     # don't perform any further actions if preprocessor option is used
-    if args.preprocessor:
+    if args.preprocess:
         exit(0)
 
     # link the program

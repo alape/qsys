@@ -25,7 +25,7 @@ class Preprocessor:
 
         for line in code.splitlines():
             if line.strip().startswith("#include "):
-                _, include = [t.strip() for t in line.split(" ", 1)]
+                _, include = [t.strip("\"\"<>") for t in line.split(" ", 1)]
                 includes.append(include)
 
         for include in includes:
@@ -35,7 +35,13 @@ class Preprocessor:
                     with open(include_candidate, "r") as f:
                         include_contents = f.read()
 
-                    processed_code.replace(f"#include {include}", include_contents)
+                    for template in [
+                        f"#include {include}",
+                        f"#include \"{include}\"",
+                        f"#include <{include}>"
+                    ]:
+                        processed_code = processed_code.replace(template, include_contents)
+
                     break
             else:
                 raise PreprocessorException(f"Include file {include} not found in {paths}")
@@ -46,10 +52,12 @@ class Preprocessor:
     def parse_macro(cls, macro: str) -> tuple[str, tuple[str], str]:
         """Parses a macrodefintion (e.g. "#define FOO(X, Y) add X, Y, 42") into the tuple:
         (name, argument list, contents)."""
-        tokens = re.findall(cls._macro_re, macro)
+        match = re.findall(cls._macro_re, macro)
 
-        if len(tokens) != 3:
+        if len(match) == 0:
             raise PreprocessorException(f"Malformed macrodefinition: \"{macro}\"")
+
+        tokens = match[0]
 
         name = tokens[0]
         contents = tokens[2]
@@ -67,7 +75,7 @@ class Preprocessor:
         with their respective values."""
         processed_macro = contents
         for parameter, argument in zip(parameters, arguments):
-            processed_macro.replace(parameter, argument)
+            processed_macro = processed_macro.replace(parameter, argument)
 
         return processed_macro
 
@@ -79,11 +87,12 @@ class Preprocessor:
         macros = external_macros
 
         # extract macros' definitions
-        for line in code:
+        for line in code.splitlines():
             stripped_line = line.strip()
             if stripped_line.startswith("#define"):
                 name, parameters, contents = cls.parse_macro(stripped_line)
                 macros[name] = (parameters, contents)
+                processed_code = processed_code.replace(line + "\n", "")
 
         # use them to replace the macros' invocations
         for macro_name, macro_data in macros.items():
