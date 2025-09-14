@@ -1,7 +1,9 @@
 import logging
 
+from sys import exit
 from argparse import ArgumentParser
 
+from assembler.preprocessing import Preprocessor
 from assembler.assembly import AssemblyParser
 from assembler.disassembly import Disassembler
 
@@ -28,6 +30,17 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--output", type=str, metavar="OUTPUT_FILE", default="program.bin",
                         help="Specifies the output binary file.")
 
+    parser.add_argument("-p", "--preprocess", type=str, metavar="OUTPUT_FILE", default="",
+                        help="Preprocess input files and output result to a specified file. If this option is used, no "
+                             "further actions will be performed.")
+
+    parser.add_argument("-I", "--include", type=str, action="extend", nargs="+", metavar="PATH",
+                        help="Adds a path to the list of paths assembler is looking into while processing includes.")
+
+    parser.add_argument("-D", "--define", type=str, action="extend", nargs="+", metavar="MACRO",
+                        help="Defines a global macro. Can be overridden by `#define` statements in code. "
+                             "Format is MACRO_NAME=MACRO_CONTENTS, e.g. FOO=42.")
+
     parser.add_argument("files", nargs="+", type=str, metavar="SOURCE_FILE",
                         help="Source files to be assembled.")
 
@@ -35,10 +48,26 @@ if __name__ == "__main__":
 
     asm = AssemblyParser()
 
-    # process input files
+    # reassemble (geddit?) external macrodefinitions into format that is palatable for qas's preprocessor
+    external_macros = {}
+    for macro in args.define:
+        macro_name, macro_contents = [t.strip() for t in macro.split("=")]
+        external_macros[macro_name] = (tuple(), macro_contents)
+
+    # preprocess and assemble input files
     for file in args.files:
         with open(file, "r") as f:
-            asm.process_assembly(f.read())
+            preprocessed_code = Preprocessor.preprocess(f.read(), ["."] + args.include, external_macros)
+
+        if args.preprocess:
+            with open(args.preprocess, "a") as f:
+                f.write(preprocessed_code + "\n")
+        else:
+            asm.process_assembly(preprocessed_code)
+
+    # don't perform any further actions if preprocessor option is used
+    if args.preprocess:
+        exit(0)
 
     # link the program
     program = asm.get_program()
