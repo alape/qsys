@@ -1,0 +1,26 @@
+{
+  "addr_space": [
+    {
+      "type": "SIMIO",
+      "cfg": {
+        "addr_offset": 0
+      }
+    },
+    {
+      "type": "VGI",
+      "cfg": {
+        "addr_offset": 512,
+        "fps": 25
+      }
+    },
+    {
+      "type": "Memory",
+      "cfg": {
+        "addr_offset": 327680,
+        "mem_size": 65535
+      }
+    }
+  ],
+  "load_at": 327680,
+  "start_at": 327680
+}
