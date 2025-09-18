@@ -24,7 +24,7 @@ def cfg2make(cfg_string: str) -> str:
 
     flags = [f"-D {macro_name}={macro_contents}" for macro_name, macro_contents in macros.items()]
 
-    return f"QAS_FLAGS={' '.join(flags)}"
+    return ' '.join(flags)
 
 
 if __name__ == "__main__":
