@@ -1,5 +1,6 @@
 import re
 import shlex
+import operator
 
 from struct import pack
 
@@ -17,6 +18,16 @@ class ParsingTools:
     """A collection of helper functions for assembly parsing."""
     _re_is_immediate_int = re.compile(r"^(0b|'b|0x|'h|)(\d+|(?<=0x|'h)[\da-fA-F]+)$")
     _re_is_symbol_name = re.compile(r"^[a-zA-Z0-9\-_]+$")
+    _re_is_eval_math = re.compile(r"[+\-*&|/]")
+
+    _op_map = {
+        "+": operator.add,
+        "-": operator.sub,
+        "*": operator.mul,
+        "/": operator.floordiv,
+        "&": operator.and_,
+        "|": operator.or_
+    }
 
     @staticmethod
     def is_valid_symbol_name(name: str) -> bool:
@@ -44,29 +55,45 @@ class ParsingTools:
             case _:
                 return int(digits)
 
-    @staticmethod
-    def parse_instruction_argument(argument: str) -> (SymbolReference | PointerReference |
-                                                      AddressArgument | Register | int):
+    @classmethod
+    def parse_instruction_argument(cls, argument: str) -> (SymbolReference | PointerReference |
+                                                           AddressArgument | Register | int):
         """Parses a single instruction argument into corresponding wrapper type."""
-        if argument.upper() in Register.indices():
-            # argument is a register index, parse into `Register` enum value
-            return Register.from_string(argument)
+        argument_is_math = re.search(cls._re_is_eval_math, argument) is not None
 
-        if len(argument) > 0 and argument[0] == "@":
-            # argument is an absolute address, wrap value into an `AddressArgument`
-            return AddressArgument(ParsingTools.parse_numeral(argument.lstrip("@")))
+        if argument_is_math:
+            if len(argument) > 0 and argument[0] == "$":
+                raise ParsingError("Symbol references cannot contain math expressions")
 
-        if len(argument) > 0 and argument[0] == "$":
-            # argument is an address of a symbol, wrap value into a `SymbolReference`
-            return PointerReference(argument.lstrip("$"))
+            op = re.findall(cls._re_is_eval_math, argument.lstrip("@"))[0]
+            arguments = [cls.parse_numeral(arg) for arg in re.split(cls._re_is_eval_math,
+                                                                    argument.lstrip("@"), 2)]
 
-        if ParsingTools.is_valid_numeral(argument):
-            # immediate numeral argument, parse to int according to specified radix
-            return ParsingTools.parse_numeral(argument)
+            # dumb, but safe way of evaluating math operators
+            eval_result = cls._op_map[op](arguments[0], arguments[1])
+
+            # if math argument starts with "@", wrap evaluation result into AddressArgument, else emit it as is
+            return AddressArgument(eval_result) if (len(argument) > 0 and argument[0] == "@") else eval_result
+        else:
+            if argument.upper() in Register.indices():
+                # argument is a register index, parse into `Register` enum value
+                return Register.from_string(argument)
+
+            if argument.startswith("@"):
+                # argument is an absolute address, wrap value into an `AddressArgument`
+                return AddressArgument(cls.parse_numeral(argument.lstrip("@")))
+
+            if argument.startswith("$"):
+                # argument is an address of a symbol, wrap value into a `SymbolReference`
+                return PointerReference(argument.lstrip("$"))
+
+            if ParsingTools.is_valid_numeral(argument):
+                # immediate numeral argument, parse to int according to specified radix
+                return cls.parse_numeral(argument)
 
         # IDK, this might be a symbol reference or some shit
         # (validate it first tho, only A-Za-z0-9_- characters are allowed in symbol names)
-        if ParsingTools.is_valid_symbol_name(argument):
+        if cls.is_valid_symbol_name(argument):
             return SymbolReference(argument)
         else:
             raise ParsingError(f"Invalid instruction argument format: '{argument}'")
@@ -110,13 +137,14 @@ class ParsingTools:
 
         raise ParsingError(f"Invalid data argument: '{token}'")
 
-    @staticmethod
-    def tokenize(line: str) -> list[str]:
+    @classmethod
+    def tokenize(cls, line: str) -> list[str]:
         """Splits assembly line into tokens: removes commas between arguments, removes comments,
         joins quoted string values."""
         output = []
 
         in_comment = False
+        last_token_is_math = False
 
         for token in shlex.split(line, posix=False):
             if in_comment:
@@ -128,11 +156,25 @@ class ParsingTools:
                 continue
 
             elif token.startswith(";"):
-                # comment begins, all further tokens will be ignored
+                # comment begins at the start of token, all further tokens will be ignored
                 in_comment = True
 
+            elif re.search(cls._re_is_eval_math, token):
+                # token is math operator, append it to the last processed token
+                last_token_is_math = True
+                if len(output) > 0:
+                    output[-1] += token
+                else:
+                    raise ParsingError(f"Operator \"{token}\" requires a prefix")
+
             else:
-                output.append(token.rstrip(","))
+                token_stripped = token.rstrip(",")
+                if last_token_is_math:
+                    # if last token was a math operator, append current token to the last one
+                    last_token_is_math = False
+                    output[-1] += token_stripped
+                else:
+                    output.append(token_stripped)
 
         return output
 
