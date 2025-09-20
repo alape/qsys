@@ -11,8 +11,13 @@ LLR_SRC = llr/simio.s llr/vgi.s llr/irq.s
 
 ifeq ($(OS), Windows_NT)
 	PYTHON = python
-else
-	PYTHON = python3
+else 
+	UNAME := $(shell uname -s)
+	ifeq ($(UNAME), Darwin)
+		PYTHON = /opt/homebrew/bin/python3
+	else
+		PYTHON = python3
+	endif
 endif
 
 
@@ -20,6 +25,7 @@ $(QSIM_CFG_INCLUDE):
 	$(PYTHON) $(CFG2MAKE) $(QSIM_CFG_FOLDER)/$(QSIM_CONFIG).json > $(QSIM_CFG_INCLUDE)
 
 $(LLR_OBJ): $(LLR_SRC) $(QSIM_CFG_INCLUDE)
+	echo $(QSIM_CFG_INCLUDE)
 	$(PYTHON) $(QAS) $(file < $(QSIM_CFG_INCLUDE)) --object $(LLR_OBJ) $(LLR_SRC)
 
 llr: $(LLR_OBJ)
@@ -30,5 +36,5 @@ clean:
 	del $(subst /,\,$(QSIM_CFG_INCLUDE))
 else
 clean:
-	rm  $(BUILD_FOLDER)/*.qo $(QSIM_CFG_INCLUDE)
+	-rm  $(BUILD_FOLDER)/*.qo $(QSIM_CFG_INCLUDE)
 endif
