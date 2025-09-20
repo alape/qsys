@@ -116,7 +116,7 @@ class Program:
     def render_code(self) -> bytes:
         """Renders intermediate representation of the program into bytes of machine code."""
         code = b""
-        current_position = 0
+        current_position = self.section_offsets[self.section_order[0]]
 
         for section in self.section_order:
             # pad code with NOPs to make sure section offset is honoured, but check for section overlap first
@@ -124,15 +124,18 @@ class Program:
             if 0 < offset < current_position:
                 raise ValueError(f"Section '{section}' overlaps previous section "
                                  f"(section offset is {hex(offset)}, but previous sections "
-                                 f"take up {current_position} words)")
+                                 f"take up {hex(current_position)} words)")
 
             code += b"\x00\x00\x00\x00" * (offset - current_position)
-            current_position = offset
+
+            # zero offset means "stack sections on top of each other"
+            if offset != 0:
+                current_position = offset
 
             # render symbols into bytecode
             for symbol in self.sections[section]:
-                s_code = symbol.get_bytes()
-                s_length = symbol.length()
+                # s_code = symbol.get_bytes()
+                # s_length = symbol.length()
                 code += symbol.get_bytes()
                 current_position += symbol.length()
 

@@ -111,6 +111,15 @@ class ParsingTools:
     @staticmethod
     def parse_data_argument(token: str) -> bytes:
         """Parses a single `data` statement argument into bytes."""
+        if token.startswith("file:"):
+            # data file by name
+            datafile = token.removeprefix("file:")
+            try:
+                with open(datafile, "rb") as f:
+                    return f.read()
+            except (FileNotFoundError, IOError) as e:
+                raise ParsingError(f"Error while reading data file \"{datafile}\"") from e
+
         if ParsingTools.is_valid_numeral(token):
             # numeral bytes
             num = ParsingTools.parse_numeral(token)
@@ -279,7 +288,7 @@ class AssemblyParser:
                     curr_symbol.contents.append(word)
 
             except (ValueError, KeyError, AttributeError, ParsingError) as e:
-                raise ParsingError(f"At line {lineno + 1}: {str(e)}") from e
+                raise ParsingError(f"At line {lineno + 1}: \"{line}\": {str(e)}") from e
 
         # wrap up the current symbol if it exists
         if curr_symbol is not None:
