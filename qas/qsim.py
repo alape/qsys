@@ -18,6 +18,9 @@ if __name__ == "__main__":
 
     parser.add_argument("-d", "--debug", action="store_true", help="Enable debugging")
 
+    parser.add_argument("-t", "--trace", action="store_true", help="Enable tracing "
+                                                                   "(non-interactive debug)")
+
     parser.add_argument("bin", metavar="BINFILE", type=str, help="Binary file containing the QCPU startup "
                                                                  "code")
 
@@ -52,11 +55,11 @@ if __name__ == "__main__":
     # begin
     log.info(f"Running...")
 
-    if args.debug:
+    if args.debug or args.trace:
         dbg = QCPUDebugger(vm)
 
         while True:
-            dbg.debug_step()
+            dbg.debug_step(args.trace)
     else:
         while True:
             vm.step()

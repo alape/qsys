@@ -131,7 +131,7 @@ class QCPUDebugger:
                 print(f"[X] Unrecognized command: \"{command}\", check syntax.")
                 return False
 
-    def debug_step(self) -> None:
+    def debug_step(self, trace: bool = False) -> None:
         pc = self.vm.registers[Register.PC.value]
 
         if (not self.stepping) and (pc not in self.breakpoints):
@@ -139,14 +139,26 @@ class QCPUDebugger:
             return
 
         current_instruction = Instruction.from_bytes(self.vm.addr_space.read_reg(pc).to_bytes(4))
-        arguments = str([hex(a) if isinstance(a, int) else a for a in current_instruction.arguments])
 
-        print(f"{'[!] Break at ' if pc in self.breakpoints else '@'}{pc:X}: {current_instruction} {arguments}")
+        arguments = []
+        for a in current_instruction.arguments:
+            if isinstance(a, Register):
+                arguments.append(f"{str(a)} = {hex(self.vm.registers[a.value])}")
+            elif isinstance(a, int):
+                arguments.append(hex(a))
+            else:
+                arguments.append(str(a))
 
-        while True:
-            cmd = ""
-            while not cmd:
-                cmd = input("> ")
+        print(f"{'[!] Break at ' if pc in self.breakpoints else '@'}{pc:X}: "
+              f"{current_instruction} | {', '.join(arguments)}")
 
-            if self._process_debugger_command(cmd):
-                break
+        if not trace:
+            while True:
+                cmd = ""
+                while not cmd:
+                    cmd = input("> ")
+
+                if self._process_debugger_command(cmd):
+                    break
+        else:
+            self.vm.step()
