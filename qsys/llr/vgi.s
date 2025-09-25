@@ -4,14 +4,6 @@
 #define VGI_WIDTH  480
 
 .text_llr
-    vgi_xy2offset:
-        ; Converts the X,Y coordinates of point into memory offset corresponding to that pixel:
-        ;   R0: X coordinate,
-        ;   R1: Y coordinate
-        ; 
-        ; Resulting value is stored in R7 LSB.
-
-
     vgi_putpixel:   
         ; Update a pixel by specified coordinates in the VGI framebuffer:
         ;   R0: X coordinate,
