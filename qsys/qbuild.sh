@@ -17,7 +17,7 @@ runcmd() {
 }
 
 if [ "$#" -lt 1 ]; then
-  echo "Usage: $0 <build|clean|sim> [debug]"
+  echo "Usage: $0 <build|clean|sim|simtrace|simdebug> [debug]"
   exit 1
 fi
 
@@ -84,6 +84,7 @@ if [ "$1" = "sim" ]; then
 fi
 
 if [ "$1" = "simtrace" ]; then
+    echo "Simulator trace log will be saved as ${BUILD_FOLDER}/trace.log"
     runcmd "${PYTHON} ${QSIM} -t -c ${QSIM_CONFIG} ${BUILD_FOLDER}/qsys.bin" | tee ${BUILD_FOLDER}/trace.log
     exit $?
 fi
