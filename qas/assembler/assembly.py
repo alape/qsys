@@ -168,7 +168,7 @@ class ParsingTools:
                 # comment begins at the start of token, all further tokens will be ignored
                 in_comment = True
 
-            elif re.search(cls._re_is_eval_math, token):
+            elif re.search(cls._re_is_eval_math, token) and not token.startswith("file"):
                 # token is math operator, append it to the last processed token
                 last_token_is_math = True
                 if len(output) > 0:
