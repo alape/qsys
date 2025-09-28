@@ -6,7 +6,7 @@ QAS="../qas/qas.py"
 QSIM="../qas/qsim.py"
 
 LLR_FONT="tools/bitfont/Ac437_HP_150_re.ttf"
-LLR_SOURCES="llr/simio.s llr/vgi.s llr/irq.s"
+LLR_SOURCES="llr/simio.s llr/vgi.s llr/irq.s llr/textmode.s"
 QSYS_SOURCES="main.s"
 
 echo "Welcome to the QBuild: the QSys build script"
@@ -26,7 +26,7 @@ if [ "$2" = "debug" ]; then
 fi
 
 if [ "$1" = "clean" ]; then
-  rm -f ${BUILD_FOLDER}/*.qo ${BUILD_FOLDER}/*.map ${BUILD_FOLDER}/*.bin ${BUILD_FOLDER}/*.gray ${BUILD_FOLDER}/qasflags
+  rm -f ${BUILD_FOLDER}/*.qo ${BUILD_FOLDER}/*.map ${BUILD_FOLDER}/*.bin ${BUILD_FOLDER}/*.gray ${BUILD_FOLDER}/qasflags ${BUILD_FOLDER}/*.log
   echo "Done removing output files from build folder."
   exit 0
 fi
@@ -66,17 +66,31 @@ if [ "$1" = "build" ]; then
   echo "Building the main LLR system..."
   QASFLAGS="$(cat ${BUILD_FOLDER}/qasflags)"
   runcmd "${PYTHON} ${QAS} ${QASFLAGS} -m ${BUILD_FOLDER}/qsys.map -o ${BUILD_FOLDER}/qsys.bin ${QSYS_SOURCES} ${LLR_SOURCES}"
+  qas_code=$?
   echo "All done!"
+  exit $qas_code
 fi
 
-if [ "$1" = "sim" ]; then
-  if [ ! -f ${BUILD_FOLDER}/qsys.bin ]; then
+if [ ! -f ${BUILD_FOLDER}/qsys.bin ]; then
     echo "QSys binary is missing, build the system first: 'qbuild.sh build'!"
     exit 1
   else
     echo "Launching the QSim..."
+fi
+
+if [ "$1" = "sim" ]; then
     runcmd "${PYTHON} ${QSIM} -c ${QSIM_CONFIG} ${BUILD_FOLDER}/qsys.bin"
-  fi
+    exit $?
+fi
+
+if [ "$1" = "simtrace" ]; then
+    runcmd "${PYTHON} ${QSIM} -t -c ${QSIM_CONFIG} ${BUILD_FOLDER}/qsys.bin" | tee ${BUILD_FOLDER}/trace.log
+    exit $?
+fi
+
+if [ "$1" = "simdebug" ]; then
+    runcmd "${PYTHON} ${QSIM} -d -c ${QSIM_CONFIG} ${BUILD_FOLDER}/qsys.bin"
+    exit $?
 fi
 
 if [ "$2" = "debug" ]; then
