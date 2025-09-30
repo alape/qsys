@@ -20,6 +20,8 @@ for ((i=32; i<=126; i++)); do
     cat $TMP_FILE
     magick -font $1 -pointsize $POINT_SIZE -size $BITMAP_SIZE -background black -fill white -stroke white \
       -gravity center +antialias label:@$TMP_FILE -colorspace gray -depth 32 $TMP_FILE
+
+    magick -size $BITMAP_SIZE -depth 32 $TMP_FILE $2.$i.png
     
     cat $TMP_FILE >> $2
 done

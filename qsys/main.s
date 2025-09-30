@@ -1,49 +1,16 @@
 .text @START_VECTOR
     _start:     ld sc, $stack
 
-                ld r0, 0x48
-                jal textmode_putc
-
-                ld r0, 0x65
-                jal textmode_putc
-
-                ld r0, 0x6c
-                jal textmode_putc
-                
-                ld r0, 0x6c
-                jal textmode_putc
-
-                ld r0, 0x6f
-                jal textmode_putc
-
-                ld r0, 0x2c
-                jal textmode_putc
-
-                ld r0, 0x20
-                jal textmode_putc
-
-                ld r0, 0x77
-                jal textmode_putc
-
-                ld r0, 0x6f
-                jal textmode_putc
-
-                ld r0, 0x72
-                jal textmode_putc
-
-                ld r0, 0x6c
-                jal textmode_putc
-
-                ld r0, 0x64
-                jal textmode_putc
-
-                ld r0, 0x21
-                jal textmode_putc
-
-                ;jal simio_trap_exit
+                ld r0, $message_text
+                ld r1, $message_len
+                jal textmode_puts
 
     endloop:    nop
                 jmp endloop
+
+.data
+    message_text: data "Hello, world!"
+    message_len:  word 4
 
 ; forward declaration of LLR runtime for linking purposes
 .text_llr
@@ -52,5 +19,5 @@
 
 .bss_llr
 
-.bss
+.bss @0x53100
     stack:      word 0
