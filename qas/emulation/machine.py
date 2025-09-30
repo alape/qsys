@@ -92,13 +92,14 @@ class QCPUMachine:
             case Flavour.Q:
                 operand_1 = instruction.arguments[0].address
             case Flavour.E:
-                operand_1 = self.registers[instruction.arguments[0]]
+                operand_1 = self.registers[instruction.arguments[0].value]
             case Flavour.N:
                 pass
             case _:
                 raise QCPUException(f"Malformed or unsupported instruction flavour: {instruction.flavour}")
 
-        if instruction.flavour in (Flavour.R, Flavour.I, Flavour.S, Flavour.F, Flavour.A):
+        if (instruction.flavour in (Flavour.R, Flavour.I, Flavour.S, Flavour.F, Flavour.A)
+                or instruction.opcode == Opcode.POP):
             assert len(instruction.arguments) > 0
             src_dest: Register = instruction.arguments[0]
 
@@ -154,6 +155,12 @@ class QCPUMachine:
                 self.registers[Register.SC.value] -= 1
                 self.registers[Register.PC.value] = self.addr_space.read_reg(self.registers[Register.SC.value])
                 increment_pc = False
+            case Opcode.PSH:
+                self.addr_space.write_reg(self.registers[Register.SC.value], operand_1)
+                self.registers[Register.SC.value] += 1
+            case Opcode.POP:
+                self.registers[Register.SC.value] -= 1
+                self.registers[src_dest.value] = self.addr_space.read_reg(self.registers[Register.SC.value])
             case _:
                 raise QCPUException(f"Malformed or unsupported instruction opcode: {instruction.opcode}")
 

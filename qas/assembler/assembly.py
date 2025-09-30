@@ -195,7 +195,7 @@ class AssemblyParser:
 
     def process_assembly(self, code: str):
         """Process assembly code, store results in internal structures to be retrieved later w/ `get_program()`."""
-        curr_section = ".text"
+        curr_section: str | None = None
         curr_symbol: Symbol | None = None
 
         for lineno, line in enumerate(code.splitlines()):
@@ -211,6 +211,8 @@ class AssemblyParser:
                         if curr_symbol is not None:
                             self._prg.put_symbol(curr_section, curr_symbol)
                             curr_symbol = None
+                        elif curr_section is not None:
+                            self._prg.section_order.append(curr_section)
 
                         # section declaration
                         curr_section = token
