@@ -110,7 +110,7 @@
         ld r3, r0                            ; current word
         ld r4, 0                             ; word counter
 
-        _tputsloop:  
+        _tputsloop:
             jal _tputw               ; output current word
             add r4, r4, 1            ; increment word counter and word pointer
             add r0, r0, 1
@@ -125,7 +125,7 @@
             ld r5, 0                 ; byte counter (4 bytes per word)
             ld r6, $_tputwloop        ; loop vector
 
-        _tputwloop:  
+        _tputwloop:
             psh r0
             psh r1
             psh r2
@@ -135,7 +135,9 @@
             psh r6
 
             xor r0, r0, r0
-            and r0, r3, 0xFF
+            add r0, r3, 0
+            rsh r0, 24
+            ;lsh r0, 24
             jal textmode_putc
 
             pop r6

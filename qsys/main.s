@@ -2,7 +2,7 @@
     _start:     ld sc, $stack
 
                 ld r0, $message_text
-                ld r1, $message_len
+                ld r1, message_len
                 jal textmode_puts
 
     endloop:    nop
