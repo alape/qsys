@@ -118,7 +118,7 @@ class QCPUMachine:
             case Opcode.XOR:
                 self.registers[src_dest.value] = operand_1 ^ operand_2
             case Opcode.LSH:
-                self.registers[src_dest.value] = self.registers[src_dest.value] << operand_1
+                self.registers[src_dest.value] = (self.registers[src_dest.value] << operand_1) & 0xFFFFFFFF
             case Opcode.RSH:
                 self.registers[src_dest.value] = self.registers[src_dest.value] >> operand_1
             case Opcode.NOT:
