@@ -13,13 +13,14 @@
         ; Moves current position to the new line (wraps around if needed). This function takes no arguments.
 
         ; Set _txt_pos_x to zero
-        st zeroes, _txt_pos_x
+        ld r8, 0
+        st r8, _txt_pos_x
         
         ; If _txt_pos_y = DISPLAY_HEIGHT, set _txt_pos_y to zero
         ld r6, _txt_pos_y
         ld r7, $_tnewline
         bne r7, r6, DISPLAY_HEIGHT
-        st zeroes, _txt_pos_y
+        st r8, _txt_pos_y
         ret
 
         ; If not, increment _txt_pos_y
@@ -137,7 +138,6 @@
             xor r0, r0, r0
             add r0, r3, 0
             rsh r0, 24
-            ;lsh r0, 24
             jal textmode_putc
 
             pop r6

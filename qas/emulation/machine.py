@@ -23,7 +23,6 @@ class QCPUMachine:
 
         # initialize registers
         self.registers = [0] * 0x10
-        self.registers[Register.ONES.value] = 0xFFFFFFFF
         self.registers[Register.PC.value] = start_at
 
     @classmethod

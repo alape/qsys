@@ -9,8 +9,8 @@
                 jmp endloop
 
 .data
-    message_text: data "Hello, world!"
-    message_len:  word 4
+    message_text: data "Hello, world! This is a rather long message, so it will take some time to be displayed... But we have all the time in the world, don't we? So relax and let it run its course... grab some coffee, read a nice book and come back some time later. It will wait for you."
+    message_len:  word 66
 
 ; forward declaration of LLR runtime for linking purposes
 .text_llr

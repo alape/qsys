@@ -46,21 +46,21 @@ class Flavour(IndexableEnum):
 
 class Register(IndexableEnum):
     """Enum that represents a QCPU register index."""
-    ZEROES = 0x0
-    ONES = 0x1
-    PC = 0x2
-    SC = 0x3
-    SR = 0x4
-    IR = 0x5
-    IV = 0x6
-    R0 = 0x8
-    R1 = 0x9
-    R2 = 0xA
-    R3 = 0xB
-    R4 = 0xC
-    R5 = 0xD
-    R6 = 0xE
-    R7 = 0xF
+    PC = 0x0
+    SC = 0x1
+    SR = 0x2
+    IR = 0x3
+    IV = 0x4
+    R0 = 0x5
+    R1 = 0x6
+    R2 = 0x7
+    R3 = 0x8
+    R4 = 0x9
+    R5 = 0xA
+    R6 = 0xB
+    R7 = 0xC
+    R8 = 0xD
+    R9 = 0xE
 
     def lo(self) -> int:
         """Returns value of register in the lower nibble (byte[3:0])."""
