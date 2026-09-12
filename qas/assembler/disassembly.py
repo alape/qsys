@@ -51,7 +51,8 @@ class Disassembler:
                     else:
                         entity_contents_sliced = " ".join(slice_by_chunks(entity.get_bytes().hex(), 2))
                         output += f"{offset + intra_symbol_offset:0{10}X}: {entity_contents_sliced}: {entity_name}\n"
-                        intra_symbol_offset += entity.length()
+
+                    intra_symbol_offset += entity.length()
 
                 output += "\n"
 
