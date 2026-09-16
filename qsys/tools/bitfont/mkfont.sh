@@ -28,7 +28,7 @@ TMP_FILE="tmp.gray"
 for ((i=32; i<=126; i++)); do
     printf "\x$(printf %x $i)" > $TMP_FILE
     cat $TMP_FILE
-    convert -size $BITMAP_SIZE xc:black -font $1 -pointsize $POINT_SIZE -fill white +antialias \
+    magick -size $BITMAP_SIZE xc:black -font $1 -pointsize $POINT_SIZE -fill white +antialias \
       -annotate +0+$BASELINE @$TMP_FILE -colorspace gray -depth 1 $TMP_FILE
 
     if [ "$(wc -c < $TMP_FILE)" -ne $BITMAP_BYTES ]; then
@@ -37,7 +37,7 @@ for ((i=32; i<=126; i++)); do
       exit 1
     fi
 
-    convert -size $BITMAP_SIZE -depth 1 $TMP_FILE $2.$i.png
+    magick -size $BITMAP_SIZE -depth 1 $TMP_FILE $2.$i.png
     
     cat $TMP_FILE >> $2
 done
