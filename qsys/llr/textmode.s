@@ -3,7 +3,8 @@
 
 #define FONT_WIDTH 8
 #define FONT_HEIGHT 16
-#define FONT_CHAR_SIZE 0x80
+; size of a single character bitmap in words (8x16 pixels at 1bpp = 128 bits = 4 words)
+#define FONT_CHAR_SIZE 4
 
 #define DISPLAY_WIDTH 80
 #define DISPLAY_HEIGHT 30
@@ -16,10 +17,10 @@
         ld r8, 0
         st r8, _txt_pos_x
         
-        ; If _txt_pos_y = DISPLAY_HEIGHT, set _txt_pos_y to zero
+        ; If _txt_pos_y is the last line (DISPLAY_HEIGHT - 1), set _txt_pos_y to zero
         ld r6, _txt_pos_y
         ld r7, $_tnewline
-        bne r7, r6, DISPLAY_HEIGHT
+        bne r7, r6, DISPLAY_HEIGHT - 1
         st r8, _txt_pos_y
         ret
 
@@ -39,6 +40,7 @@
         ld r3, _txt_pos_x
         blt r2, r3, DISPLAY_WIDTH
         jal textmode_newline
+        ld r3, _txt_pos_x               ; reload current X, since textmode_newline() has reset it
 
         ; skip _tputc_mulx() if current X is zero
         _tputc_premulx:
@@ -84,15 +86,16 @@
             bgt r2, r0, 0
 
         _tputc_endbfoffset:
-            ; store arguments for vgi_blit() call
+            ; store arguments for vgi_blit_1bpp() call
             add r0, r1, 0           ; r0: framebuffer X
             add r1, r4, 0           ; r1: framebuffer Y
             add r4, r3, 0           ; r4: bitmap offset
             ld r2, FONT_WIDTH       ; r2: bitmap width
             ld r3, FONT_HEIGHT      ; r3: bitmap height
+            ld r5, $_txt_palette    ; r5: palette offset
 
-            ; call vgi_blit()
-            jal vgi_blit
+            ; call vgi_blit_1bpp()
+            jal vgi_blit_1bpp
 
             ; increment current X position
             ld r7, _txt_pos_x
@@ -159,6 +162,8 @@
 
 .data_llr
     bitfont:        data file:build/bitfont.gray
+    _txt_palette:   word 0x00000000         ; background colour
+                    word 0x00BFFF00         ; foreground colour
 
 .bss_llr
     _txt_pos_x:     word 0

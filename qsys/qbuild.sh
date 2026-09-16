@@ -5,7 +5,7 @@ QSIM_CONFIG="../qas/emulation/configs/modern.json"
 QAS="../qas/qas.py"
 QSIM="../qas/qsim.py"
 
-LLR_FONT="tools/bitfont/Ac437_HP_150_re.ttf"
+LLR_FONT="tools/bitfont/Px437_IBM_VGA_8x16.ttf"
 LLR_SOURCES="llr/simio.s llr/vgi.s llr/irq.s llr/textmode.s"
 QSYS_SOURCES="main.s"
 
