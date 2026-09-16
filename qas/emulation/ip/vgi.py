@@ -9,7 +9,7 @@ from emulation.ip.common import IP, IPRegisterAccessMode, IPException
 class VGI(IP):
     """VGI IP block. Outputs its address space as an image via Numpy array & OpenCV."""
     _alloc_addrspace = False
-    _fb_offset = 2
+    _fb_offset = 3
     addr_space_size = 0x4bfff
     easymmap_id = 0x56474930
     reg_descr = {
@@ -49,7 +49,7 @@ class VGI(IP):
             cv2.pollKey()
 
     def read_reg(self, relative_address: int) -> int:
-        if relative_address > self._fb_offset:
+        if relative_address >= self._fb_offset:
             try:
                 y = (relative_address - self._fb_offset) // self.width
                 x = (relative_address - self._fb_offset) % self.width
@@ -62,7 +62,7 @@ class VGI(IP):
             return super().read_reg(relative_address)
 
     def write_reg(self, relative_address: int, value: int) -> None:
-        if relative_address > self._fb_offset:
+        if relative_address >= self._fb_offset:
             try:
                 y = (relative_address - self._fb_offset) // self.width
                 x = (relative_address - self._fb_offset) % self.width
