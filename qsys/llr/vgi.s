@@ -81,7 +81,10 @@
         ;   R4: Bitmap offset,
         ;   R5: Palette offset: two words, colour of zero bits (background) followed by colour of set bits (foreground)
         ;
-        ; Note that this routine consumes the register values (by modifying them in-place) and also overwrites R6..R9.
+        ; Note that this routine consumes the register values (by modifying them in-place) and also overwrites R6, R7.
+
+        psh r8                          ; R8 and R9 are callee-saved, so the caller's copies are to be preserved
+        psh r9
 
         ; calculate linear coordinates of bitmap's anchor: addr = X + (VGI framebuffer offset) + Y * VGI_WIDTH
         add r0, r0, VGI_OFFSET + 3
@@ -122,4 +125,6 @@
         sub r3, r3, 1                   ; decrement line counter in place
         bne r8, r3, 0                   ; repeat if there are still lines left to output
 
+        pop r9                          ; restore the caller's callee-saved registers and exit vgi_blit_1bpp()
+        pop r8
         ret
