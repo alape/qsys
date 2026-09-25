@@ -110,6 +110,8 @@ class QCPUMachine:
                 self.registers[src_dest.value] = operand_1 + operand_2
             case Opcode.SUB:
                 self.registers[src_dest.value] = operand_1 - operand_2
+            case Opcode.MUL:
+                self.registers[src_dest.value] = operand_1 * operand_2
             case Opcode.AND:
                 self.registers[src_dest.value] = operand_1 & operand_2
             case Opcode.OR:
